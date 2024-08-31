@@ -35,99 +35,115 @@
             border-radius: 5px;
         }
 
-        .legend i {
-            width: 18px;
-            height: 18px;
-            float: left;
-            margin-right: 8px;
-            opacity: 0.7;
+        #search-container {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
         }
 
-        .legend div {
-            display: flex;
-            align-items: center;
+        #search-input {
+            width: 300px;
+            padding: 5px;
         }
     </style>
 </head>
 
 <body>
     <div id="map"></div>
+    <div id="search-container">
+        <input type="text" id="search-input" list="municipalities" placeholder="Buscar municipio...">
+        <datalist id="municipalities"></datalist>
+    </div>
     <script>
-        var map = L.map('map', {
-            dragging: !L.Browser.mobile,
+        let map = L.map('map', {
             scrollWheelZoom: true,
-        }).setView([-17.121, -65.257], 6); 
+        }).setView([-17.121, -65.257], 6);
         L.tileLayer('https://api.mapbox.com/styles/v1/labtecnosocial/cm0i76qni01zx01qqcjcz53cf/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1IjoibGFidGVjbm9zb2NpYWwiLCJhIjoiY20waTc1eG9jMGozbTJsb21pMm1icGFwcSJ9.kaYSMCqpXOVglG6bHsanPA', {
             maxZoom: 19,
         }).addTo(map);
 
         function getColor(d) {
-            var r, g, b;
+            let hue;
             if (d < 0) {
-                // More red for negative values
-                r = 255;
-                g = 255 + d * 2.55; // d is negative, so this decreases green
-                b = 255 + d * 2.55; // d is negative, so this decreases blue
+                // Negative values: hue between 0 (red) and 60 (yellow)
+                hue = 0 + (d * 60 / -54); // d ranges from -54 to 0
             } else {
-                // More green for positive values
-                r = 255 - d * 2.55; // d is positive, so this decreases red
-                g = 255;
-                b = 255 - d * 2.55; // d is positive, so this decreases blue
+                // Positive values: hue between 60 (yellow) and 120 (green)
+                hue = 60 + (d * 60 / 555); // d ranges from 0 to 555
             }
-            return `rgb(${Math.max(0, Math.min(255, r))}, ${Math.max(0, Math.min(255, g))}, ${Math.max(0, Math.min(255, b))})`;
+            hue = Math.max(0, Math.min(120, hue)); // Ensure hue is within 0 to 120
+            return `hsl(${hue}, 100%, 50%)`;
         }
-
         function getRadius(pob) {
             // Normalize population to a range of 3 to 30
             let min = 4;
             let max = 40;
-            var minPob = 882; // Adjust based on your data
-            var maxPob = 1606671; // Adjust based on your data
+            let minPob = 882; // Adjust based on your data
+            let maxPob = 1606671; // Adjust based on your data
             return min + (pob - minPob) * (max - min) / (maxPob - minPob);
         }
 
-        var data = L.geoJSON.ajax("data/censos.geojson", {
+        let municipalities = {};
+        let data = L.geoJSON.ajax("data/censos.geojson", {
             pointToLayer: function (feature, latlng) {
+                municipalities[feature.properties.Municipality] = latlng;
                 return L.circleMarker(latlng, {
                     radius: getRadius(feature.properties.pob_2024),
                     fillColor: getColor(feature.properties.incremento_porcentual),
-                    color: // transparent gray 
-                        'rgba(0, 0, 0, 0.2)',
+                    color: 'rgba(0, 0, 0, 0.2)', // transparent gray
                     weight: 0.5,
                     opacity: 1,
                     fillOpacity: 0.8 // Adjust transparency
                 });
             },
             onEachFeature: function (feature, layer) {
+                let incremento = feature.properties.incremento_porcentual;
+                let incrementoText = incremento > 0 ?
+                    `<span style="color: green;">&#9650; ${incremento}%</span>` :
+                    `<span style="color: red;">&#9660; ${incremento}%</span>`;
                 layer.bindPopup(`
-                <b>Municipio</b>: ${feature.properties.Municipality}<br>
+                <h3 style="text-align: center">${feature.properties.Municipality}</h3>
+                <hr>
                 <b>Población 2024</b>: ${feature.properties.pob_2024} hab<br>
-                <b>Diferencia con 2012</b>: ${feature.properties.diferencia} hab
+                <b>Diferencia con 2012</b>: ${feature.properties.diferencia} hab<br>
+                <b>Incremento porcentual</b>: ${incrementoText}
                 `);
             }
         });
 
         data.addTo(map);
 
-        // Add legend to the map
-        var legend = L.control({ position: 'bottomright' });
-
-        legend.onAdd = function (map) {
-            var div = L.DomUtil.create('div', 'legend'),
-                grades = [-100, -50, 0, 50, 100],
-                labels = [];
-
-            div.innerHTML = '<strong>Incremento Porcentual</strong><br>';
-            for (var i = 0; i < grades.length; i++) {
-                div.innerHTML +=
-                    '<div><i style="background:' + getColor(grades[i]) + '"></i> ' +
-                    grades[i] + (grades[i + 1] ? '&ndash;' + grades[i + 1] + '</div>' : '+</div>');
+        // Populate the datalist with municipalities
+        data.on('data:loaded', function () {
+            let datalist = document.getElementById('municipalities');
+            for (let municipality in municipalities) {
+                let option = document.createElement('option');
+                option.value = municipality;
+                datalist.appendChild(option);
             }
+        });
 
-            return div;
-        };
+        // Add event listener to the search input
+        document.getElementById('search-input').addEventListener('change', function (e) {
+            let municipality = e.target.value;
+            if (municipalities[municipality]) {
+                let latlng = municipalities[municipality];
+                map.flyTo(latlng, 12);
+                data.eachLayer(function (layer) {
+                    if (layer.feature.properties.Municipality === municipality) {
+                        layer.openPopup();
+                    }
+                });
+            }
+        });
 
-        legend.addTo(map);
+        map.zoomControl.setPosition('bottomleft');
     </script>
 </body>
 
