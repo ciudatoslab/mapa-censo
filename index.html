@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+        integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="https://unpkg.com/leaflet-ajax/dist/leaflet.ajax.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.panellayers/dist/leaflet.panellayers.css" />
+    <script src="https://unpkg.com/leaflet.panellayers"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+
+        html,
+        body {
+            height: 100%;
+        }
+
+        #map {
+            height: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="map"></div>
+    <script>
+        var map = L.map('map', {
+            dragging: !L.Browser.mobile,
+            scrollWheelZoom: false,
+        }).setView([-16.55, -66.3810], 7);
+        L.tileLayer('https://api.mapbox.com/styles/v1/labtecnosocial/cm0i76qni01zx01qqcjcz53cf/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1IjoibGFidGVjbm9zb2NpYWwiLCJhIjoiY20waTc1eG9jMGozbTJsb21pMm1icGFwcSJ9.kaYSMCqpXOVglG6bHsanPA', {
+            maxZoom: 19,
+        }).addTo(map);
+
+        var data = L.geoJSON.ajax("data/censos.geojson", {
+            onEachFeature: function (feature, layer) {
+
+                layer.bindPopup(`
+
+                `);
+            },
+            style: function () {
+                return {
+                    weight: 0.8
+                };
+            }
+        });
+
+
+        data.addTo(map);
+
+    </script>
+</body>
+
+</html>
