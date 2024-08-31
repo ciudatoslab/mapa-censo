@@ -56,7 +56,7 @@
         var map = L.map('map', {
             dragging: !L.Browser.mobile,
             scrollWheelZoom: true,
-        }).setView([-16.55, -66.3810], 6);
+        }).setView([-17.121, -65.257], 6); 
         L.tileLayer('https://api.mapbox.com/styles/v1/labtecnosocial/cm0i76qni01zx01qqcjcz53cf/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1IjoibGFidGVjbm9zb2NpYWwiLCJhIjoiY20waTc1eG9jMGozbTJsb21pMm1icGFwcSJ9.kaYSMCqpXOVglG6bHsanPA', {
             maxZoom: 19,
         }).addTo(map);
@@ -79,9 +79,11 @@
 
         function getRadius(pob) {
             // Normalize population to a range of 3 to 30
+            let min = 4;
+            let max = 40;
             var minPob = 882; // Adjust based on your data
             var maxPob = 1606671; // Adjust based on your data
-            return 3 + (pob - minPob) * (30 - 3) / (maxPob - minPob);
+            return min + (pob - minPob) * (max - min) / (maxPob - minPob);
         }
 
         var data = L.geoJSON.ajax("data/censos.geojson", {
