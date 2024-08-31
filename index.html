@@ -25,6 +25,28 @@
         #map {
             height: 100%;
         }
+
+        .legend {
+            background: white;
+            line-height: 1.5em;
+            padding: 6px 8px;
+            font: 14px/16px Arial, Helvetica, sans-serif;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+            border-radius: 5px;
+        }
+
+        .legend i {
+            width: 18px;
+            height: 18px;
+            float: left;
+            margin-right: 8px;
+            opacity: 0.7;
+        }
+
+        .legend div {
+            display: flex;
+            align-items: center;
+        }
     </style>
 </head>
 
@@ -39,25 +61,71 @@
             maxZoom: 19,
         }).addTo(map);
 
-        var data = L.geoJSON.ajax("data/censos.geojson", {
-            onEachFeature: function (feature, layer) {
+        function getColor(d) {
+            var r, g, b;
+            if (d < 0) {
+                // More red for negative values
+                r = 255;
+                g = 255 + d * 2.55; // d is negative, so this decreases green
+                b = 255 + d * 2.55; // d is negative, so this decreases blue
+            } else {
+                // More green for positive values
+                r = 255 - d * 2.55; // d is positive, so this decreases red
+                g = 255;
+                b = 255 - d * 2.55; // d is positive, so this decreases blue
+            }
+            return `rgb(${Math.max(0, Math.min(255, r))}, ${Math.max(0, Math.min(255, g))}, ${Math.max(0, Math.min(255, b))})`;
+        }
 
+        function getRadius(pob) {
+            // Normalize population to a range of 3 to 30
+            var minPob = 882; // Adjust based on your data
+            var maxPob = 1606671; // Adjust based on your data
+            return 3 + (pob - minPob) * (30 - 3) / (maxPob - minPob);
+        }
+
+        var data = L.geoJSON.ajax("data/censos.geojson", {
+            pointToLayer: function (feature, latlng) {
+                return L.circleMarker(latlng, {
+                    radius: getRadius(feature.properties.pob_2024),
+                    fillColor: getColor(feature.properties.incremento_porcentual),
+                    color: // transparent gray 
+                        'rgba(0, 0, 0, 0.2)',
+                    weight: 0.5,
+                    opacity: 1,
+                    fillOpacity: 0.8 // Adjust transparency
+                });
+            },
+            onEachFeature: function (feature, layer) {
                 layer.bindPopup(`
                 <b>Municipio</b>: ${feature.properties.Municipality}<br>
                 <b>Población 2024</b>: ${feature.properties.pob_2024} hab<br>
                 <b>Diferencia con 2012</b>: ${feature.properties.diferencia} hab
                 `);
-            },
-            style: function () {
-                return {
-                    weight: 0.8
-                };
             }
         });
 
-
         data.addTo(map);
 
+        // Add legend to the map
+        var legend = L.control({ position: 'bottomright' });
+
+        legend.onAdd = function (map) {
+            var div = L.DomUtil.create('div', 'legend'),
+                grades = [-100, -50, 0, 50, 100],
+                labels = [];
+
+            div.innerHTML = '<strong>Incremento Porcentual</strong><br>';
+            for (var i = 0; i < grades.length; i++) {
+                div.innerHTML +=
+                    '<div><i style="background:' + getColor(grades[i]) + '"></i> ' +
+                    grades[i] + (grades[i + 1] ? '&ndash;' + grades[i + 1] + '</div>' : '+</div>');
+            }
+
+            return div;
+        };
+
+        legend.addTo(map);
     </script>
 </body>
 
