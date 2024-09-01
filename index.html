@@ -132,7 +132,7 @@
                 <h3 style="text-align: center">${feature.properties.Municipality}</h3>
                 <hr>
                 <canvas id="charts"></canvas>
-                <b>Crecimiento porcentual</b>: ${incrementoText}<br>
+                <b>Crecimiento porcentual oficial</b>: ${incrementoText}<br>
                 <b>Diferencia con proyección:</b> ${new Intl.NumberFormat('es-BO').format(feature.properties.dif_proy)} hab.
                 `);
             }
@@ -186,7 +186,7 @@
                             borderDash: [5, 5]
                         },
                         {
-                            label: 'Censo',
+                            label: 'Censos oficiales',
                             data: [
                                 { x: '2012', y: layer.feature.properties.pob_2012 },
                                 { x: '2024', y: layer.feature.properties.pob_2024 }
