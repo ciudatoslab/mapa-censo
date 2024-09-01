@@ -65,12 +65,18 @@
         <datalist id="municipalities"></datalist>
     </div>
     <div class="legend">
-        <i style="background: hsl(18, 75%, 49%); width: 18px; height: 18px; display: inline-block;"></i> Crecimiento 
+        <i style="background: #DC581E; width: 18px; height: 18px; display: inline-block;"></i> [-55%, -10%)
         <br>
-        <i style="background: hsl(168, 31%, 43%); width: 18px; height: 18px; display: inline-block;"></i> Decrecimiento
+        <i style="background: #DE8644; width: 18px; height: 18px; display: inline-block;"></i> [-10%, 0%)
+        <br>
+        <i style="background: #92D0B0; width: 18px; height: 18px; display: inline-block;"></i> [0%, 17%)
+        <br>
+        <i style="background: #72BCA7; width: 18px; height: 18px; display: inline-block;"></i> [17%, 30%)
+        <br>
+        <i style="background: #4B8E80; width: 18px; height: 18px; display: inline-block;"></i> [30%, 555%)
         <br>
         <br>
-        <p style="font-size: 12px;">📍 A más grade el círculo, mayor población.</p>
+        <p style="font-size: 12px;">📍 A más grande el círculo, mayor población.</p>
     </div>
     <script>
         let map = L.map('map', {
@@ -81,10 +87,18 @@
             attribution: 'Elaborado por <a href="https://ciudatoslab.org/">Ciudatos Lab</a> y <a href="https://labtecnosocial.org/">Lab TecnoSocial</a>'
         }).addTo(map);
         function getColor(d) {
-            if (d < 0) {
-                return 'hsl(18, 75%, 49%)'; // Redish color for negative values
+            if (d >= -55 && d < -10) {
+                return '#DC581E';
+            } else if (d >= -10 && d < 0) {
+                return '#DE8644';
+            } else if (d >= 0 && d < 17) {
+                return '#92D0B0';
+            } else if (d >= 17 && d < 30) {
+                return '#72BCA7';
+            } else if (d >= 30 && d < 555) {
+                return '#4B8E80';
             } else {
-                return 'hsl(168, 31%, 43%)'; // Greenish color for positive values
+                return '#000000';
             }
         }
         function getRadius(pob) {
@@ -125,21 +139,6 @@
         });
 
         data.addTo(map);
-
-        // function stylePolygons(feature) {
-        // return {
-        //    fillOpacity: 0, // No rellenar el polígono
-        //     weight: 1,      // Ancho del borde
-        //     color: 'black', // Color del borde
-        //     opacity: 0.09    // Transparencia del borde
-        //     };
-        // }
-
-        // let municipalities = L.geoJSON.ajax("data/municipios.geojson", {
-        //     style: stylePolygons
-        // });
-
-        // municipalities.addTo(map); 
 
         // Populate the datalist with municipalities
         data.on('data:loaded', function () {
