@@ -33,6 +33,10 @@
             font: 14px/16px Arial, Helvetica, sans-serif;
             box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
             border-radius: 5px;
+            position: absolute;
+            bottom: 30px;
+            right: 10px;
+            z-index: 1000;
         }
 
         #search-container {
@@ -60,6 +64,11 @@
         <input type="text" id="search-input" list="municipalities" placeholder="Buscar municipio...">
         <datalist id="municipalities"></datalist>
     </div>
+    <div class="legend">
+        <i style="background: hsl(18, 75%, 49%); width: 18px; height: 18px; display: inline-block;"></i> Crecimiento
+        <br>
+        <i style="background: hsl(168, 31%, 43%); width: 18px; height: 18px; display: inline-block;"></i> Decrecimiento
+    </div>
     <script>
         let map = L.map('map', {
             scrollWheelZoom: true,
@@ -67,21 +76,15 @@
         L.tileLayer('https://api.mapbox.com/styles/v1/labtecnosocial/cm0i76qni01zx01qqcjcz53cf/tiles/256/{z}/{x}/{y}?access_token=pk.eyJ1IjoibGFidGVjbm9zb2NpYWwiLCJhIjoiY20waTc1eG9jMGozbTJsb21pMm1icGFwcSJ9.kaYSMCqpXOVglG6bHsanPA', {
             maxZoom: 19,
         }).addTo(map);
-
         function getColor(d) {
-            let hue;
             if (d < 0) {
-                // Negative values: hue between 0 (red) and 60 (yellow)
-                hue = 0 + (d * 60 / -54); // d ranges from -54 to 0
+                return 'hsl(18, 75%, 49%)'; // Redish color for negative values
             } else {
-                // Positive values: hue between 60 (yellow) and 120 (green)
-                hue = 60 + (d * 60 / 555); // d ranges from 0 to 555
+                return 'hsl(168, 31%, 43%)'; // Greenish color for positive values
             }
-            hue = Math.max(0, Math.min(120, hue)); // Ensure hue is within 0 to 120
-            return `hsl(${hue}, 100%, 50%)`;
         }
         function getRadius(pob) {
-            // Normalize population to a range of 3 to 30
+            // Normalize population to a range of 4 to 40
             let min = 4;
             let max = 40;
             let minPob = 882; // Adjust based on your data
@@ -98,8 +101,8 @@
                     fillColor: getColor(feature.properties.incremento_porcentual),
                     color: 'rgba(0, 0, 0, 0.2)', // transparent gray
                     weight: 0.5,
-                    opacity: 1,
-                    fillOpacity: 0.8 // Adjust transparency
+                    opacity: 0.9,
+                    fillOpacity: 0.9 // Adjust transparency
                 });
             },
             onEachFeature: function (feature, layer) {
